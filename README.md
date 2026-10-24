@@ -1,5 +1,7 @@
 # RetroLab
 
+中文说明：[README.zh.md](README.zh.md)
+
 RetroLab is a Flutter camera app built to feel closer to shooting a disposable or compact film camera than applying a generic filter after the fact.
 
 The app combines live film preview, stock-specific color rendering, virtual rolls, post-capture editing, and local-first media storage. The goal is simple: make capture feel opinionated, tactile, and a little imperfect.
