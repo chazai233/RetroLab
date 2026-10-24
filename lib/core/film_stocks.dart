@@ -1,0 +1,747 @@
+library;
+
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+
+import 'constants.dart';
+
+enum FilmProcess { c41, e6, blackAndWhite, instant, cinematic }
+
+class ResolvedFilmArtifacts {
+  final double borderGlare;
+  final double glareWidth;
+  final double glareAngle;
+  final double chromaticAberrationX;
+  final double chromaticAberrationY;
+
+  const ResolvedFilmArtifacts({
+    required this.borderGlare,
+    required this.glareWidth,
+    required this.glareAngle,
+    required this.chromaticAberrationX,
+    required this.chromaticAberrationY,
+  });
+}
+
+class FilmStock {
+  static const List<double> identityColorMatrix = <double>[
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+  ];
+
+  final String id;
+  final String name;
+  final String shortName;
+  final String description;
+  final Color badgeColor;
+  final IconData icon;
+  final FilmProcess filmProcess;
+  final int iso;
+  final double temperature;
+  final double saturation;
+  final double contrast;
+  final double brightness;
+  final double shadowLift;
+  final Color highlightTint;
+  final Color shadowTint;
+  final double tintStrength;
+  final double baseGrain;
+  final bool coloredGrain;
+  final double grainSize;
+  final double baseVignette;
+  final double halation;
+  final double redGamma;
+  final double greenGamma;
+  final double blueGamma;
+  final double borderGlare;
+  final Color glareTint;
+  final double chromaticAberration;
+  final List<double> colorMatrix;
+
+  const FilmStock({
+    required this.id,
+    required this.name,
+    required this.shortName,
+    required this.description,
+    required this.badgeColor,
+    required this.icon,
+    required this.filmProcess,
+    required this.iso,
+    required this.temperature,
+    required this.saturation,
+    required this.contrast,
+    required this.brightness,
+    required this.shadowLift,
+    required this.highlightTint,
+    required this.shadowTint,
+    required this.tintStrength,
+    required this.baseGrain,
+    required this.coloredGrain,
+    this.grainSize = 1.0,
+    required this.baseVignette,
+    this.halation = 0.0,
+    required this.redGamma,
+    required this.greenGamma,
+    required this.blueGamma,
+    this.borderGlare = 0.0,
+    this.glareTint = const Color(0xFFFFFFFF),
+    this.chromaticAberration = 0.0,
+    this.colorMatrix = identityColorMatrix,
+  });
+
+  String get processLabel => switch (filmProcess) {
+    FilmProcess.c41 => '彩色负片',
+    FilmProcess.e6 => '反转片',
+    FilmProcess.blackAndWhite => '黑白',
+    FilmProcess.instant => '拍立得',
+    FilmProcess.cinematic => '电影卷',
+  };
+
+  ResolvedFilmArtifacts resolveArtifacts({
+    required int seed,
+    required bool analogRandomness,
+  }) {
+    if (!analogRandomness) {
+      return const ResolvedFilmArtifacts(
+        borderGlare: 0.0,
+        glareWidth: 0.18,
+        glareAngle: 0.0,
+        chromaticAberrationX: 0.0,
+        chromaticAberrationY: 0.0,
+      );
+    }
+
+    final glareStrength = borderGlare * (0.82 + _seededUnit(seed, 17) * 0.36);
+    final glareWidth = 0.12 + _seededUnit(seed, 29) * 0.16;
+    final glareAngle = -0.38 + _seededUnit(seed, 43) * 0.76;
+    final aberration =
+        chromaticAberration * (0.80 + _seededUnit(seed, 71) * 0.50);
+    final aberrationAngle = _seededUnit(seed, 97) * math.pi * 2.0;
+    return ResolvedFilmArtifacts(
+      borderGlare: glareStrength,
+      glareWidth: glareWidth,
+      glareAngle: glareAngle,
+      chromaticAberrationX: math.cos(aberrationAngle) * aberration,
+      chromaticAberrationY: math.sin(aberrationAngle) * aberration,
+    );
+  }
+
+  static double _seededUnit(int seed, int salt) {
+    final value = math.sin((seed * 0.013) + salt * 12.9898) * 43758.5453;
+    return value - value.floorToDouble();
+  }
+}
+
+class FilmStocks {
+  FilmStocks._();
+
+  static const List<FilmStock> all = [
+    kodakGold200,
+    kodakUltramax400,
+    kodakPortra400,
+    kodakEktar100,
+    fujiSuperia400,
+    agfaVista200,
+    fujiVelvia50,
+    fujiProvia100F,
+    ilfordHP5,
+    kodakTriX400,
+    ilfordDelta100,
+    cineStill800T,
+    cineStill50D,
+    polaroid600,
+    lomo400,
+    expired1998,
+    disposableFlash800,
+    pocket110,
+    custom400C41,
+  ];
+
+  static const FilmStock kodakGold200 = FilmStock(
+    id: 'kodak_gold_200',
+    name: 'K-Gold 200',
+    shortName: 'GOLD',
+    description: 'Color cálido y nostálgico a luz de día.',
+    badgeColor: Color(0xFFFFC107),
+    icon: Icons.wb_sunny,
+    filmProcess: FilmProcess.c41,
+    iso: 200,
+    temperature: 0.16,
+    saturation: 1.24,
+    contrast: 0.21,
+    brightness: 0.01,
+    shadowLift: 0.035,
+    highlightTint: Color(0xFFF4D36A),
+    shadowTint: Color(0xFF5A4030),
+    tintStrength: 0.12,
+    baseGrain: 0.12,
+    coloredGrain: true,
+    grainSize: 1.00,
+    baseVignette: 0.24,
+    redGamma: 0.96,
+    greenGamma: 1.00,
+    blueGamma: 1.05,
+    borderGlare: 0.16,
+    glareTint: Color(0xFFFFB44D),
+    chromaticAberration: 0.0016,
+  );
+
+  static const FilmStock kodakUltramax400 = FilmStock(
+    id: 'kodak_ultramax_400',
+    name: 'Kodak Ultramax 400',
+    shortName: 'UMAX 400',
+    description: 'Negativo vivo con un empuje cálido.',
+    badgeColor: Color(0xFFE65100),
+    icon: Icons.filter_vintage,
+    filmProcess: FilmProcess.c41,
+    iso: 400,
+    temperature: 0.10,
+    saturation: 1.27,
+    contrast: 0.27,
+    brightness: 0.01,
+    shadowLift: 0.030,
+    highlightTint: Color(0xFFF3C07B),
+    shadowTint: Color(0xFF4B3428),
+    tintStrength: 0.10,
+    baseGrain: 0.14,
+    coloredGrain: true,
+    grainSize: 1.10,
+    baseVignette: 0.27,
+    redGamma: 0.97,
+    greenGamma: 0.99,
+    blueGamma: 1.03,
+    borderGlare: 0.20,
+    glareTint: Color(0xFFFFA13D),
+    chromaticAberration: 0.0022,
+  );
+
+  static const FilmStock kodakPortra400 = FilmStock(
+    id: 'portra_400',
+    name: 'P-Portra 400',
+    shortName: 'PRT400',
+    description: 'Tonos de piel equilibrados y altas luces suaves.',
+    badgeColor: Color(0xFFFF8A65),
+    icon: Icons.face,
+    filmProcess: FilmProcess.c41,
+    iso: 400,
+    temperature: 0.07,
+    saturation: 1.00,
+    contrast: -0.03,
+    brightness: 0.02,
+    shadowLift: 0.045,
+    highlightTint: Color(0xFFF5C3B0),
+    shadowTint: Color(0xFF4B5661),
+    tintStrength: 0.09,
+    baseGrain: 0.10,
+    coloredGrain: true,
+    grainSize: 0.95,
+    baseVignette: 0.18,
+    redGamma: 0.97,
+    greenGamma: 1.00,
+    blueGamma: 1.03,
+    borderGlare: 0.12,
+    glareTint: Color(0xFFFFC3A0),
+    chromaticAberration: 0.0012,
+  );
+
+  static const FilmStock kodakEktar100 = FilmStock(
+    id: 'kodak_ektar_100',
+    name: 'Kodak Ektar 100',
+    shortName: 'EKTAR',
+    description: 'Grano fino, rojos nítidos, paisajes vivos.',
+    badgeColor: Color(0xFFC62828),
+    icon: Icons.landscape,
+    filmProcess: FilmProcess.c41,
+    iso: 100,
+    temperature: 0.03,
+    saturation: 1.35,
+    contrast: 0.28,
+    brightness: 0.00,
+    shadowLift: 0.020,
+    highlightTint: Color(0xFFFFB08B),
+    shadowTint: Color(0xFF223567),
+    tintStrength: 0.08,
+    baseGrain: 0.06,
+    coloredGrain: true,
+    grainSize: 0.75,
+    baseVignette: 0.18,
+    redGamma: 0.96,
+    greenGamma: 0.99,
+    blueGamma: 1.02,
+    borderGlare: 0.06,
+    glareTint: Color(0xFFFFC2A2),
+    chromaticAberration: 0.0008,
+  );
+
+  static const FilmStock fujiSuperia400 = FilmStock(
+    id: 'fuji_superia_400',
+    name: 'F-Superia 400',
+    shortName: 'SUP400',
+    description: 'Verdes más fríos y color clásico de minilab.',
+    badgeColor: Color(0xFF4CAF50),
+    icon: Icons.grass,
+    filmProcess: FilmProcess.c41,
+    iso: 400,
+    temperature: -0.06,
+    saturation: 1.25,
+    contrast: 0.25,
+    brightness: 0.00,
+    shadowLift: 0.030,
+    highlightTint: Color(0xFFCFE5B0),
+    shadowTint: Color(0xFF274B3A),
+    tintStrength: 0.11,
+    baseGrain: 0.14,
+    coloredGrain: true,
+    grainSize: 1.10,
+    baseVignette: 0.28,
+    redGamma: 1.03,
+    greenGamma: 0.97,
+    blueGamma: 1.00,
+    borderGlare: 0.15,
+    glareTint: Color(0xFF9DFFD6),
+    chromaticAberration: 0.0015,
+  );
+
+  static const FilmStock agfaVista200 = FilmStock(
+    id: 'agfa_vista_200',
+    name: 'A-Vista 200',
+    shortName: 'VISTA',
+    description: 'Color saturado con rojos animados.',
+    badgeColor: Color(0xFFF44336),
+    icon: Icons.local_fire_department,
+    filmProcess: FilmProcess.c41,
+    iso: 200,
+    temperature: 0.05,
+    saturation: 1.29,
+    contrast: 0.25,
+    brightness: 0.01,
+    shadowLift: 0.035,
+    highlightTint: Color(0xFFF2B574),
+    shadowTint: Color(0xFF5B2F4A),
+    tintStrength: 0.10,
+    baseGrain: 0.12,
+    coloredGrain: true,
+    grainSize: 1.00,
+    baseVignette: 0.24,
+    redGamma: 0.97,
+    greenGamma: 1.01,
+    blueGamma: 0.99,
+    borderGlare: 0.14,
+    glareTint: Color(0xFFFF9E63),
+    chromaticAberration: 0.0016,
+  );
+
+  static const FilmStock fujiVelvia50 = FilmStock(
+    id: 'fuji_velvia_50',
+    name: 'Fuji Velvia 50',
+    shortName: 'VELVIA',
+    description: 'Diapositiva intensa de color denso.',
+    badgeColor: Color(0xFF00838F),
+    icon: Icons.filter_hdr,
+    filmProcess: FilmProcess.e6,
+    iso: 50,
+    temperature: 0.00,
+    saturation: 1.38,
+    contrast: 0.35,
+    brightness: -0.01,
+    shadowLift: 0.005,
+    highlightTint: Color(0xFFF4F0D0),
+    shadowTint: Color(0xFF1E4474),
+    tintStrength: 0.07,
+    baseGrain: 0.05,
+    coloredGrain: true,
+    grainSize: 0.70,
+    baseVignette: 0.16,
+    redGamma: 0.99,
+    greenGamma: 0.96,
+    blueGamma: 0.98,
+    borderGlare: 0.05,
+    glareTint: Color(0xFFB5FFF0),
+    chromaticAberration: 0.0008,
+  );
+
+  static const FilmStock fujiProvia100F = FilmStock(
+    id: 'fuji_provia_100f',
+    name: 'Fuji Provia 100F',
+    shortName: 'PROVIA',
+    description: 'Diapositiva neutra de contraste limpio.',
+    badgeColor: Color(0xFF1E88E5),
+    icon: Icons.filter,
+    filmProcess: FilmProcess.e6,
+    iso: 100,
+    temperature: -0.02,
+    saturation: 1.17,
+    contrast: 0.24,
+    brightness: 0.00,
+    shadowLift: 0.005,
+    highlightTint: Color(0xFFF4F1DD),
+    shadowTint: Color(0xFF263B5E),
+    tintStrength: 0.06,
+    baseGrain: 0.05,
+    coloredGrain: true,
+    grainSize: 0.70,
+    baseVignette: 0.14,
+    redGamma: 1.00,
+    greenGamma: 0.98,
+    blueGamma: 0.99,
+    borderGlare: 0.05,
+    glareTint: Color(0xFFCFF5FF),
+    chromaticAberration: 0.0007,
+  );
+
+  static const FilmStock ilfordHP5 = FilmStock(
+    id: 'ilford_hp5',
+    name: 'I-HP5 Plus',
+    shortName: 'HP5+',
+    description: 'Blanco y negro clásico con sombras abiertas.',
+    badgeColor: Color(0xFF424242),
+    icon: Icons.contrast,
+    filmProcess: FilmProcess.blackAndWhite,
+    iso: 400,
+    temperature: 0.00,
+    saturation: 0.00,
+    contrast: 0.26,
+    brightness: 0.00,
+    shadowLift: 0.022,
+    highlightTint: Colors.white,
+    shadowTint: Colors.black,
+    tintStrength: 0.00,
+    baseGrain: 0.15,
+    coloredGrain: false,
+    grainSize: 1.15,
+    baseVignette: 0.24,
+    redGamma: 1.00,
+    greenGamma: 1.00,
+    blueGamma: 1.00,
+    borderGlare: 0.09,
+    glareTint: Color(0xFFF7F7F3),
+    chromaticAberration: 0.0011,
+  );
+
+  static const FilmStock kodakTriX400 = FilmStock(
+    id: 'kodak_tri_x_400',
+    name: 'Kodak Tri-X 400',
+    shortName: 'TRI-X',
+    description: 'Monocromo intenso con contraste callejero.',
+    badgeColor: Color(0xFF616161),
+    icon: Icons.monochrome_photos,
+    filmProcess: FilmProcess.blackAndWhite,
+    iso: 400,
+    temperature: 0.00,
+    saturation: 0.00,
+    contrast: 0.38,
+    brightness: 0.00,
+    shadowLift: 0.012,
+    highlightTint: Colors.white,
+    shadowTint: Colors.black,
+    tintStrength: 0.00,
+    baseGrain: 0.16,
+    coloredGrain: false,
+    grainSize: 1.20,
+    baseVignette: 0.22,
+    redGamma: 0.95,
+    greenGamma: 1.00,
+    blueGamma: 1.04,
+    borderGlare: 0.10,
+    glareTint: Color(0xFFF4F2EB),
+    chromaticAberration: 0.0013,
+  );
+
+  static const FilmStock ilfordDelta100 = FilmStock(
+    id: 'ilford_delta_100',
+    name: 'Ilford Delta 100',
+    shortName: 'DELTA',
+    description: 'Blanco y negro limpio de grano fino.',
+    badgeColor: Color(0xFFBDBDBD),
+    icon: Icons.tonality,
+    filmProcess: FilmProcess.blackAndWhite,
+    iso: 100,
+    temperature: 0.00,
+    saturation: 0.00,
+    contrast: 0.18,
+    brightness: 0.01,
+    shadowLift: 0.012,
+    highlightTint: Colors.white,
+    shadowTint: Colors.black,
+    tintStrength: 0.00,
+    baseGrain: 0.08,
+    coloredGrain: false,
+    grainSize: 0.65,
+    baseVignette: 0.14,
+    redGamma: 0.99,
+    greenGamma: 1.00,
+    blueGamma: 1.02,
+    borderGlare: 0.03,
+    glareTint: Color(0xFFF6F6F1),
+    chromaticAberration: 0.0006,
+  );
+
+  static const FilmStock cineStill800T = FilmStock(
+    id: 'cinestill_800t',
+    name: 'C-Still 800T',
+    shortName: '800T',
+    description: 'Noche de neón con halación de tungsteno.',
+    badgeColor: Color(0xFF29B6F6),
+    icon: Icons.nightlife,
+    filmProcess: FilmProcess.cinematic,
+    iso: 800,
+    temperature: -0.14,
+    saturation: 1.19,
+    contrast: 0.27,
+    brightness: 0.01,
+    shadowLift: 0.030,
+    highlightTint: Color(0xFFFFA08C),
+    shadowTint: Color(0xFF1C4A72),
+    tintStrength: 0.15,
+    baseGrain: 0.18,
+    coloredGrain: true,
+    grainSize: 1.30,
+    baseVignette: 0.28,
+    halation: 0.35,
+    redGamma: 0.98,
+    greenGamma: 1.00,
+    blueGamma: 0.94,
+    borderGlare: 0.22,
+    glareTint: Color(0xFFFF7A59),
+    chromaticAberration: 0.0024,
+  );
+
+  static const FilmStock cineStill50D = FilmStock(
+    id: 'cinestill_50d',
+    name: 'CineStill 50D',
+    shortName: '50D',
+    description: 'Color de cine a luz de día con halación suave.',
+    badgeColor: Color(0xFFFFA726),
+    icon: Icons.movie_filter,
+    filmProcess: FilmProcess.cinematic,
+    iso: 50,
+    temperature: 0.03,
+    saturation: 1.15,
+    contrast: 0.19,
+    brightness: 0.00,
+    shadowLift: 0.020,
+    highlightTint: Color(0xFFFFB39E),
+    shadowTint: Color(0xFF2F5960),
+    tintStrength: 0.09,
+    baseGrain: 0.07,
+    coloredGrain: true,
+    grainSize: 0.75,
+    baseVignette: 0.16,
+    halation: 0.14,
+    redGamma: 0.98,
+    greenGamma: 1.00,
+    blueGamma: 1.02,
+    borderGlare: 0.07,
+    glareTint: Color(0xFFFFC487),
+    chromaticAberration: 0.0009,
+  );
+
+  static const FilmStock polaroid600 = FilmStock(
+    id: 'polaroid_600',
+    name: '拍立得 600',
+    shortName: 'POL 600',
+    description: 'Color instantáneo suave con negros levantados.',
+    badgeColor: RetroColors.polaroidWhite,
+    icon: Icons.photo,
+    filmProcess: FilmProcess.instant,
+    iso: 160,
+    temperature: 0.05,
+    saturation: 0.90,
+    contrast: -0.06,
+    brightness: 0.02,
+    shadowLift: 0.064,
+    highlightTint: Color(0xFFF3E5F5),
+    shadowTint: Color(0xFF344C8A),
+    tintStrength: 0.14,
+    baseGrain: 0.09,
+    coloredGrain: true,
+    grainSize: 0.95,
+    baseVignette: 0.20,
+    redGamma: 0.99,
+    greenGamma: 1.00,
+    blueGamma: 0.98,
+    borderGlare: 0.20,
+    glareTint: Color(0xFFFFC4EC),
+    chromaticAberration: 0.0020,
+  );
+
+  static const FilmStock lomo400 = FilmStock(
+    id: 'lomo_400',
+    name: 'Lomo 400',
+    shortName: 'LOMO',
+    description: 'Color cruzado y viñeta más marcada.',
+    badgeColor: RetroColors.lomoBlue,
+    icon: Icons.palette,
+    filmProcess: FilmProcess.c41,
+    iso: 400,
+    temperature: 0.08,
+    saturation: 1.36,
+    contrast: 0.31,
+    brightness: 0.01,
+    shadowLift: 0.025,
+    highlightTint: Color(0xFFFFE066),
+    shadowTint: Color(0xFF184C8C),
+    tintStrength: 0.16,
+    baseGrain: 0.14,
+    coloredGrain: true,
+    grainSize: 1.15,
+    baseVignette: 0.38,
+    redGamma: 0.96,
+    greenGamma: 1.03,
+    blueGamma: 0.97,
+    borderGlare: 0.17,
+    glareTint: Color(0xFFFFE160),
+    chromaticAberration: 0.0018,
+  );
+
+  static const FilmStock expired1998 = FilmStock(
+    id: 'expired_1998',
+    name: 'Expired 1998',
+    shortName: 'EXP 98',
+    description: 'Escaneos lavados, deriva magenta, aire de caja vieja.',
+    badgeColor: RetroColors.expiredPink,
+    icon: Icons.auto_awesome,
+    filmProcess: FilmProcess.c41,
+    iso: 200,
+    temperature: 0.09,
+    saturation: 0.86,
+    contrast: -0.03,
+    brightness: 0.02,
+    shadowLift: 0.074,
+    highlightTint: Color(0xFFE6B68A),
+    shadowTint: Color(0xFF66445C),
+    tintStrength: 0.19,
+    baseGrain: 0.16,
+    coloredGrain: true,
+    grainSize: 1.25,
+    baseVignette: 0.30,
+    redGamma: 0.95,
+    greenGamma: 1.04,
+    blueGamma: 1.00,
+    borderGlare: 0.21,
+    glareTint: Color(0xFFFF9FD3),
+    chromaticAberration: 0.0021,
+  );
+
+  static const FilmStock disposableFlash800 = FilmStock(
+    id: 'disposable_flash_800',
+    name: 'Disposable Flash 800',
+    shortName: 'FLASH',
+    description: 'Flash directo, sombras frías, recuerdos ruidosos.',
+    badgeColor: Color(0xFFFF7043),
+    icon: Icons.flash_on,
+    filmProcess: FilmProcess.c41,
+    iso: 800,
+    temperature: -0.02,
+    saturation: 1.24,
+    contrast: 0.31,
+    brightness: 0.03,
+    shadowLift: 0.020,
+    highlightTint: Color(0xFFFFF1CE),
+    shadowTint: Color(0xFF33485D),
+    tintStrength: 0.10,
+    baseGrain: 0.18,
+    coloredGrain: true,
+    grainSize: 1.35,
+    baseVignette: 0.34,
+    redGamma: 1.02,
+    greenGamma: 0.99,
+    blueGamma: 0.97,
+    borderGlare: 0.18,
+    glareTint: Color(0xFFFFE7C2),
+    chromaticAberration: 0.0020,
+  );
+
+  static const FilmStock pocket110 = FilmStock(
+    id: 'pocket_110',
+    name: 'Pocket 110',
+    shortName: '110',
+    description: 'Color de cámara diminuta, medios lavados, grano grueso.',
+    badgeColor: Color(0xFF8D6E63),
+    icon: Icons.camera_alt_outlined,
+    filmProcess: FilmProcess.c41,
+    iso: 200,
+    temperature: 0.09,
+    saturation: 0.96,
+    contrast: -0.01,
+    brightness: 0.01,
+    shadowLift: 0.060,
+    highlightTint: Color(0xFFE8B97A),
+    shadowTint: Color(0xFF66445C),
+    tintStrength: 0.16,
+    baseGrain: 0.20,
+    coloredGrain: true,
+    grainSize: 1.55,
+    baseVignette: 0.42,
+    redGamma: 0.96,
+    greenGamma: 1.03,
+    blueGamma: 0.99,
+    borderGlare: 0.23,
+    glareTint: Color(0xFFFFC49A),
+    chromaticAberration: 0.0026,
+  );
+
+  static const FilmStock custom400C41 = FilmStock(
+    id: 'custom_400_c41',
+    name: 'Custom 400 C-41',
+    shortName: 'C400',
+    description:
+        'Negativo de pantalla fotografiada, caída cálida y sangrado en bordes.',
+    badgeColor: Color(0xFFFF8F5A),
+    icon: Icons.camera_roll,
+    filmProcess: FilmProcess.c41,
+    iso: 400,
+    temperature: 0.06,
+    saturation: 1.18,
+    contrast: 0.12,
+    brightness: 0.025,
+    shadowLift: 0.05,
+    highlightTint: Color(0xFFF2C9AE),
+    shadowTint: Color(0xFF52455B),
+    tintStrength: 0.11,
+    baseGrain: 0.12,
+    coloredGrain: true,
+    grainSize: 1.0,
+    baseVignette: 0.32,
+    redGamma: 0.96,
+    greenGamma: 1.00,
+    blueGamma: 0.95,
+    borderGlare: 0.26,
+    glareTint: Color(0xFFFFB16A),
+    chromaticAberration: 0.0028,
+    colorMatrix: <double>[
+      1.08,
+      0.18,
+      -0.08,
+      0.01,
+      1.02,
+      -0.03,
+      -0.04,
+      0.07,
+      1.08,
+    ],
+  );
+
+  static FilmStock getById(String id) {
+    return all.firstWhere(
+      (stock) => stock.id == id,
+      orElse: () => kodakGold200,
+    );
+  }
+
+  static Map<FilmProcess, List<FilmStock>> get byProcess {
+    final groups = <FilmProcess, List<FilmStock>>{};
+    for (final stock in all) {
+      groups.putIfAbsent(stock.filmProcess, () => []).add(stock);
+    }
+    return groups;
+  }
+}
